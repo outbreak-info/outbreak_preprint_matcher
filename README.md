@@ -39,7 +39,7 @@ Files may be named by type of meta compared (either 'text' or 'auth' (author)), 
 * 'results/to review/manual_check.txt' - a tab-delimited pandas dump for matches where a litcovid item matched with more than one preprint or vice versa
 * 'results/archives/clean_results.txt' - a tab-delimited pandas dump for matches which do not need further screening. This file is processed for creating the update dump
 * 'results/update dumps/update_file.txt' - a tab-delimited pandas dump for matches which do not need further screening and have been formatted with the appropriate fields for importing into outbreak.info resource metadata
-
+* Note that some files may be compressed to meet github upload requirements. Uncompress in same directory for script run
 
 ### Similarity calculations
 This script currently uses a basic bag of words comparison and calculated jaccard similarity index. 

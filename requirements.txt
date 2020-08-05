@@ -1,0 +1,4 @@
+python==3.6
+requests==2.22.0
+pandas==0.25.3
+nltk==3.4.5
