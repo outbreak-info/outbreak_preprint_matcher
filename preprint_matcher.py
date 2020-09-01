@@ -179,6 +179,17 @@ def sort_matches(new_text_matches,new_auth_matches,threshold):
     return(clean_matches,lowscores,manual_check)    
     
 #### Functions for cleaning up the results
+def convert_txt_dumps(txtdump):
+    txtdump.rename(columns={'correction.identifier':'identifier','correction.url':'url','correction.type':'type'}, inplace=True)
+    dictlist = []
+    for i in range(len(txtdump)):
+        tmpdict={'_id':txtdump.iloc[i]['_id'],'correction':{'identifier':txtdump.iloc[i]['identifier'],
+                                                             'type':txtdump.iloc[i]['type'],
+                                                             'url':txtdump.iloc[i]['url']}}
+        dictlist.append(tmpdict)
+    return(dictlist)
+
+
 def generate_updates(updatedf):
     correctionA = updatedf[['litcovid','preprint']].copy()
     correctionA.rename(columns={'litcovid':'_id','preprint':'correction.identifier'},inplace=True)
@@ -195,6 +206,9 @@ def generate_updates(updatedf):
     correctionupdate = pandas.concat((correctionA,correctionB),ignore_index=True)
     correctionupdate.to_csv('results/update dumps/update_file.tsv',sep="\t",header=True)
     corrections_added = len(correctionupdate)
+    json_corrections = convert_txt_dumps(correctionupdate)
+    with open('results/update dumps/update_file.json', 'w', encoding='utf-8') as f:
+        json.dump(json_corrections, f)
     return(corrections_added)
     
 #### Functions for updating the save files
@@ -246,7 +260,8 @@ def update_results(result_df):
         old_clean_results.drop_duplicates(subset='_id',keep='first',inplace=True)
         old_clean_results.to_csv('results/archives/clean_results.txt',sep='\t',header=True)
     return(update_dict)       
-    
+
+
     
 #### Main function
 thresholds = {"auth":0.45,
