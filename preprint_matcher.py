@@ -192,6 +192,7 @@ def convert_txt_dumps(txtdump):
 
 
 def generate_updates(updatedf):
+    priorupdates = read_csv('results/update dumps/update_file.tsv',delimiter="\t",header=0,index_col=0)
     correctionA = updatedf[['litcovid','preprint']].copy()
     correctionA.rename(columns={'litcovid':'_id','preprint':'correction.identifier'},inplace=True)
     correctionA['correction.type']='preprint'
@@ -204,7 +205,8 @@ def generate_updates(updatedf):
     correctionB['baseurl']='https://pubmed.ncbi.nlm.nih.gov/'
     correctionB['correction.url']=correctionB['baseurl'].str.cat(correctionB['correction.identifier'])
     correctionB.drop('baseurl',axis=1,inplace=True)
-    correctionupdate = pandas.concat((correctionA,correctionB),ignore_index=True)
+    correctionupdate = pandas.concat((priorupdates,correctionA,correctionB),ignore_index=True)
+    correctionupdate.drop_duplicates(keep='first')
     correctionupdate.to_csv('results/update dumps/update_file.tsv',sep="\t",header=True)
     corrections_added = len(correctionupdate)
     json_corrections = convert_txt_dumps(correctionupdate)
@@ -360,7 +362,10 @@ changeinfo['run complete'] = datetime.now()
 with open('results/temp/run_log.txt','wb') as dmpfile:
     pickle.dump(changeinfo, dmpfile)    
     
-    
+init_dmp = read_csv('results/update dumps/update_file.tsv', delimiter='\t', header=0, index_col=0)
+dictlist = convert_txt_dumps(init_dmp)
+with open('results/update dumps/update_file.json', 'w', encoding='utf-8') as f:
+    json.dump(dictlist, f)    
     
     
     
