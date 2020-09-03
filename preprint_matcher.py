@@ -183,10 +183,10 @@ def convert_txt_dumps(txtdump):
     txtdump.rename(columns={'correction.identifier':'identifier','correction.url':'url','correction.type':'type'}, inplace=True)
     dictlist = []
     for i in range(len(txtdump)):
-        tmpdict={'_id':txtdump.iloc[i]['_id'],'correction':{'@type':'Correction',
+        tmpdict={'_id':txtdump.iloc[i]['_id'],'correction':[{'@type':'Correction',
                                                             'identifier':txtdump.iloc[i]['identifier'],
                                                             'correctionType':txtdump.iloc[i]['type'],
-                                                            'url':txtdump.iloc[i]['url']}}
+                                                            'url':txtdump.iloc[i]['url']}]}
         dictlist.append(tmpdict)
     return(dictlist)
 
