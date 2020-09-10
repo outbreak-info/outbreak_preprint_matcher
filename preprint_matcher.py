@@ -359,7 +359,7 @@ changeinfo.update(lowscores_update)
 clean_match_update = update_results(clean_matches)
 changeinfo.update(clean_match_update)
 changeinfo['run complete'] = datetime.now()
-with open('results/temp/run_log.txt','wb') as dmpfile:
+with open('results/temp/run_log.txt','ab') as dmpfile:
     pickle.dump(changeinfo, dmpfile)    
     
 init_dmp = read_csv('results/update dumps/update_file.tsv', delimiter='\t', header=0, index_col=0)

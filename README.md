@@ -11,6 +11,14 @@ This code was written in python 3.6 and uses the following libraries:
 * json
 * string
 * datetime
+Additionally, you will need a few libraries from nltk which must be downloaded using the nltk downloader including:
+* stopwords
+* punkt
+To get these, run this once:
+`import nltk
+nltk download stopwords
+nltk download punkt`
+
 
 **Limitations**
 This code does not account for publications hosted in Zenodo, Dataverse, Figshare, or any other general repository, as the relationship between publications hosted on those sites and litcovid publications cannot be automatically determined.  This code is only for linking preprints in biorxiv and medrxiv to litcovid. Note that it currently does not accommodate preprint rxivs outside of biorxiv and medrxiv as the parsers for those preprints have yet to be written.
