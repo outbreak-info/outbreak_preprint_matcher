@@ -46,8 +46,8 @@ def get_source_ids(source):
         return(idlist)
     
 def get_pub_ids():
-    biorxiv_ids = get_source_ids("biorxiv")
-    medrxiv_ids = get_source_ids("medrxiv")
+    biorxiv_ids = get_source_ids("bioRxiv")
+    medrxiv_ids = get_source_ids("medRxiv")
     litcovid_ids = get_source_ids("litcovid")
     preprint_ids = list(set(medrxiv_ids).union(set(biorxiv_ids)))
     return(preprint_ids,litcovid_ids)
@@ -232,7 +232,8 @@ def update_precompute(clean_df_set):
         df_type = 'auth'
     else:
         df_type = 'text'
-    old_info = pickle.load(open("results/archives/"+df_type+"_"+df_source+"_set.txt", "rb"))
+    with open("results/archives/"+df_type+"_"+df_source+"_set.txt", "rb") as tmpfile:
+        old_info = pickle.load(tmpfile)
     updated_info = pandas.concat((old_info,clean_df_set),ignore_index=True)
     with open("results/archives/"+df_type+"_"+df_source+"_set.txt", "wb") as dmpfile:
         pickle.dump(updated_info, dmpfile)

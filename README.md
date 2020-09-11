@@ -11,9 +11,11 @@ This code was written in python 3.6 and uses the following libraries:
 * json
 * string
 * datetime
+
 Additionally, you will need a few libraries from nltk which must be downloaded using the nltk downloader including:
 * stopwords
 * punkt
+
 To get these, run this once:
 `import nltk
 nltk download stopwords
