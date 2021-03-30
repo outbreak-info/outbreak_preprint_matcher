@@ -192,7 +192,7 @@ def convert_txt_dumps(txtdump):
 
 
 def generate_updates(updatedf):
-    priorupdates = read_csv('results/update dumps/update_file.tsv',delimiter="\t",header=0,index_col=0)
+    priorlitcovidupdates = read_csv('results/update dumps/litcovid_update_file.tsv',delimiter="\t",header=0,index_col=0)
     correctionA = updatedf[['litcovid','preprint']].copy()
     correctionA.rename(columns={'litcovid':'_id','preprint':'correction.identifier'},inplace=True)
     correctionA['@type']='outbreak:Correction'
@@ -200,6 +200,14 @@ def generate_updates(updatedf):
     correctionA['baseurl']='https://doi.org/10.1101/'
     correctionA['correction.url']=correctionA['baseurl'].str.cat(correctionA['correction.identifier'])
     correctionA.drop('baseurl',axis=1,inplace=True)
+    correctionAupdate = pandas.concat((priorlitcovidupdates,correctionA),ignore_index=True)
+    correctionAupdate.drop_duplicates(keep='first')
+    correctionAupdate.to_csv('results/update dumps/litcovid_update_file.tsv',sep="\t",header=True)
+    json_correctionsA = convert_txt_dumps(correctionAupdate)
+    with open('results/update dumps/litcovid_update_file.json', 'w', encoding='utf-8') as f:
+        json.dump(json_correctionsA, f)
+
+    priorpreprintupdates = read_csv('results/update dumps/preprint_update_file.tsv',delimiter="\t",header=0,index_col=0)    
     correctionB = updatedf[['litcovid','preprint']].copy()
     correctionB.rename(columns={'litcovid':'correction.identifier','preprint':'_id'},inplace=True)
     correctionB['@type']='outbreak:Correction'
@@ -207,14 +215,15 @@ def generate_updates(updatedf):
     correctionB['baseurl']='https://pubmed.ncbi.nlm.nih.gov/'
     correctionB['correction.url']=correctionB['baseurl'].str.cat(correctionB['correction.identifier'])
     correctionB.drop('baseurl',axis=1,inplace=True)
-    correctionupdate = pandas.concat((priorupdates,correctionA,correctionB),ignore_index=True)
-    correctionupdate.drop_duplicates(keep='first')
-    correctionupdate.to_csv('results/update dumps/update_file.tsv',sep="\t",header=True)
-    corrections_added = len(correctionupdate)
-    json_corrections = convert_txt_dumps(correctionupdate)
-    with open('results/update dumps/update_file.json', 'w', encoding='utf-8') as f:
-        json.dump(json_corrections, f)
+    correctionBupdate = pandas.concat((priorpreprintupdates,correctionB),ignore_index=True)
+    correctionBupdate.drop_duplicates(keep='first')
+    correctionBupdate.to_csv('results/update dumps/preprint_update_file.tsv',sep="\t",header=True)
+    json_correctionsB = convert_txt_dumps(correctionBupdate)
+    with open('results/update dumps/preprint_update_file.json', 'w', encoding='utf-8') as f:
+        json.dump(json_correctionsB, f)
+    corrections_added = len(correctionBupdate)+len(correctionAupdate)
     return(corrections_added)
+
     
 #### Functions for updating the save files
 def update_archives(all_ids):
