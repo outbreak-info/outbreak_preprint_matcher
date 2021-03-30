@@ -195,13 +195,15 @@ def generate_updates(updatedf):
     priorupdates = read_csv('results/update dumps/update_file.tsv',delimiter="\t",header=0,index_col=0)
     correctionA = updatedf[['litcovid','preprint']].copy()
     correctionA.rename(columns={'litcovid':'_id','preprint':'correction.identifier'},inplace=True)
-    correctionA['correction.type']='preprint'
+    correctionA['@type']='outbreak:Correction'
+    correctionA['correction.correctionType']='preprint'
     correctionA['baseurl']='https://doi.org/10.1101/'
     correctionA['correction.url']=correctionA['baseurl'].str.cat(correctionA['correction.identifier'])
     correctionA.drop('baseurl',axis=1,inplace=True)
     correctionB = updatedf[['litcovid','preprint']].copy()
     correctionB.rename(columns={'litcovid':'correction.identifier','preprint':'_id'},inplace=True)
-    correctionB['correction.type']='peer-reviewed version'
+    correctionB['@type']='outbreak:Correction'
+    correctionB['correction.correctionType']='peer-reviewed version'
     correctionB['baseurl']='https://pubmed.ncbi.nlm.nih.gov/'
     correctionB['correction.url']=correctionB['baseurl'].str.cat(correctionB['correction.identifier'])
     correctionB.drop('baseurl',axis=1,inplace=True)
