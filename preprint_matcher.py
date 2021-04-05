@@ -11,12 +11,14 @@ from datetime import datetime
 
 
 #### Functions to get updated ids
+#### Get the size of the source (to make it easy to figure out when to stop scrolling)
 def fetch_src_size(source):
     pubmeta = requests.get("https://api.outbreak.info/resources/query?q=curatedBy.name:"+source+"&size=0&aggs=@type")
     pubjson = json.loads(pubmeta.text)
     pubcount = int(pubjson["facets"]["@type"]["total"])
     return(pubcount)
 
+#### Pull ids from a json file
 def get_ids_from_json(jsonfile):
     idlist = []
     for eachhit in jsonfile["hits"]:
@@ -24,6 +26,7 @@ def get_ids_from_json(jsonfile):
             idlist.append(eachhit["_id"])
     return(idlist)
 
+#### Ping the API and get all the ids for a specific source and scroll through the source until number of ids matches meta
 def get_source_ids(source):
     source_size = fetch_src_size(source)
     r = requests.get("https://api.outbreak.info/resources/query?q=curatedBy.name:"+source+"&fields=_id&fetch_all=true")
@@ -44,7 +47,8 @@ def get_source_ids(source):
         return(idlist)
     except:
         return(idlist)
-    
+
+#### Pull ids from the major publication sources (litcovid, medrxiv,biorxiv)
 def get_pub_ids():
     biorxiv_ids = get_source_ids("bioRxiv")
     medrxiv_ids = get_source_ids("medRxiv")
@@ -52,6 +56,7 @@ def get_pub_ids():
     preprint_ids = list(set(medrxiv_ids).union(set(biorxiv_ids)))
     return(preprint_ids,litcovid_ids)
 
+#### Load the previously saved id lists, and compare the two to identify only the new ids
 def remove_old_ids(allidlist):
     preprint_run = pickle.load(open("results/archives/all_preprint_ids.txt", "rb"))
     litcovid_run = pickle.load(open("results/archives/all_litcovid_ids.txt", "rb"))
@@ -59,14 +64,16 @@ def remove_old_ids(allidlist):
     new_ids_only = [x for x in allidlist if x not in old_id_list]
     return(new_ids_only)
 
-#### Functions to get the metadata for id lists
+#### Get the metadata for each list
 #### Note, I've tried batches of 1000, and the post request has failed, so this uses a batch size that's less likely to fail
 def batch_fetch_meta(idlist):
+    ## Break the list of ids into smaller chunks so the API doesn't fail the post request
     runs = round((len(idlist))/100,0)
     i=0 
     separator = ','
-    textdf = pandas.DataFrame(columns = ['_id','abstract','name'])
-    authdf = pandas.DataFrame(columns = ['_id','author'])
+    ## Create dummy dataframe to store the meta data
+    textdf = pandas.DataFrame(columns = ['_id','abstract','name','date'])
+    authdf = pandas.DataFrame(columns = ['_id','author','date'])
     while i < runs+1:
         if len(idlist)<100:
             sample = idlist
@@ -77,50 +84,58 @@ def batch_fetch_meta(idlist):
         else:
             sample = idlist[i*100:(i+1)*100]
         sample_ids = separator.join(sample)
-        r = requests.post("https://api.outbreak.info/resources/query/", params = {'q': sample_ids, 'scopes': '_id', 'fields': 'name,abstract'})
+        ## Get the text-based metadata (abstract, title) and save it
+        r = requests.post("https://api.outbreak.info/resources/query/", params = {'q': sample_ids, 'scopes': '_id', 'fields': 'name,abstract,date'})
         if r.status_code == 200:
             rawresult = pandas.read_json(r.text)
-            cleanresult = rawresult[['_id','name','abstract']].loc[rawresult['_score']==1].copy()
+            cleanresult = rawresult[['_id','name','abstract','date']].loc[rawresult['_score']==1].copy()
             cleanresult.drop_duplicates(subset='_id',keep="first", inplace=True)
             textdf = pandas.concat((textdf,cleanresult))
-            
-        a = requests.post("https://api.outbreak.info/resources/query/", params = {'q': sample_ids, 'scopes': '_id', 'fields': 'author'})
+        ## Get the author metadata and save it    
+        a = requests.post("https://api.outbreak.info/resources/query/", params = {'q': sample_ids, 'scopes': '_id', 'fields': 'author,date'})
         if a.status_code == 200:
             rawresult = pandas.read_json(a.text)
-            cleanresult = rawresult[['_id','author']].loc[rawresult['_score']==1].copy()
+            cleanresult = rawresult[['_id','author','date']].loc[rawresult['_score']==1].copy()
             cleanresult.drop_duplicates(subset='_id',keep="first", inplace=True)
             authdf = pandas.concat((authdf,cleanresult))
         i=i+1
     return(textdf,authdf)
+ 
     
 #### Functions for cleaning up metadata for new entries prior to running comparisons
+
+## reduce camelcase differences by lower casing everything, deal with punctuation oddities, remove stopwords and tokenize
 def text2word_tokens(section_text):
     sample_text = section_text.lower().translate(str.maketrans('','',string.punctuation))
     sample_set = [x for x in nltk.tokenize.word_tokenize(sample_text) if x not in stopwords]
     return(sample_set)
 
+## Pull the ids from a dataframe
 def get_ids_from_df(rawdf_set):
     rawdf_ids = rawdf_set['_id'].unique().tolist()
     return(rawdf_ids)
-    
+
+## merge title and abstract and create bag of words, remove entries missing abstract (can't be compared)
 def remove_text_na(rawdf):
     rawdf['text'] = rawdf['name'].str.cat(rawdf['abstract'], sep=" | ")
     rawdf_set = rawdf.loc[~rawdf['abstract'].isna() & ~rawdf['text'].isna()].copy()
     rawdf_set['words'] = rawdf_set.apply(lambda x: text2word_tokens(x['text']), axis=1)
     return(rawdf_set)
-    
+
+## create bag of words from author and remove entries missing authors (can't be compared)
 def remove_auth_na(rawdf,textset_ids):
     rawdf_set = rawdf.loc[~rawdf['author'].isna() & rawdf['_id'].isin(textset_ids)].copy()
     rawdf_set['author'] = rawdf_set['author'].astype(str)
     rawdf_set['words'] = rawdf_set.apply(lambda x: text2word_tokens(x['author']), axis=1)
     return(rawdf_set)
 
+## run the cleaning functions above on a given text dataframe, author dataframe, and source (preprint or litcovid)
 def clean_source_data(textdf,authdf,source):
     textdf_set = remove_text_na(textdf)
     textdf_ids = get_ids_from_df(textdf_set)
     authdf_set = remove_auth_na(authdf,textdf_ids)
     authdf_ids = get_ids_from_df(authdf_set)
-    return(textdf_set,authdf_set)    
+    return(textdf_set,authdf_set)   
     
 #### Functions for removing successful matches from old metadata prior to running comparisons
 def remove_matched_values(source,dftype):
@@ -129,33 +144,42 @@ def remove_matched_values(source,dftype):
     with open("results/archives/"+dftype+"_"+source+"_set.txt", "rb") as openfile:
         old_source = pickle.load(openfile)
     clean_source = old_source.loc[~old_source['_id'].isin(matched_ids)]
-    return(clean_source)    
+    return(clean_source)   
 
 #### Functions for comparing metadata
+## Blank out the previous temp files 
 def blank_temps():
     tmppath='results/temp/'
     tmpfiles = ['auth_above_threshold.txt','text_above_threshold.txt']
     for eachfile in tmpfiles:
         with open(tmppath+eachfile,'w') as outwrite:
             outwrite.write('litcovid\tpreprint\tj_sim\n')
-
+            
+## Run pairwise jaccard similarity calcuations and save only the results that meet the threshold into the tempfiles
 def run_comparison(preprint_set,litcovid_set,set_type, thresholds):
     i=0
     while i < len(litcovid_set):
         litcovid_id = litcovid_set.iloc[i]['_id']
         sample_set1 = litcovid_set.iloc[i]['words']
+        try:
+            litcovid_date = datetime.strptime(litcovid_set.iloc[i]['date'], '%Y-%m-%d')
+        except:
+            litcovid_date = datetime.now()
         j=0
-        while j < len(preprint_set):
-            preprint_id = preprint_set.iloc[j]['_id']
-            sample_set2 = preprint_set.iloc[j]['words']
+        preprint_subset = preprint_set.loc[preprint_set['date']<=litcovid_date]
+        while j < len(preprint_subset):
+            preprint_id = preprint_subset.iloc[j]['_id']
+            sample_set2 = preprint_subset.iloc[j]['words']
             j_dist = nltk.jaccard_distance(set(sample_set1), set(sample_set2))
             j_sim = 1-j_dist
             if j_sim > thresholds[set_type]:
                 with open("results/temp/"+set_type+"_above_threshold.txt","a") as dump:
                     dump.write(litcovid_id+'\t'+preprint_id+'\t'+str(j_sim)+'\n')
             j=j+1
-        i=i+1    
+        i=i+1
+           
     
+## Merge the author and text matches that meet threshold, calculate sum score, and sort results
 def sort_matches(new_text_matches,new_auth_matches,threshold):
     new_text_matches.rename(columns={'j_sim':'j_sim_text'},inplace=True)
     new_auth_matches.rename(columns={'j_sim':'j_sim_author'},inplace=True)
@@ -165,18 +189,16 @@ def sort_matches(new_text_matches,new_auth_matches,threshold):
     dupcheckdf = preprint_matches.groupby('preprint').size().reset_index(name='preprint_count')
     dup_preprints = dupcheckdf['preprint'].loc[dupcheckdf['preprint_count']>1].tolist()
     duplitcheckdf = preprint_matches.groupby('litcovid').size().reset_index(name='litcovid_count')
-    dup_pmids = duplitcheckdf['litcovid'].loc[duplitcheckdf['litcovid_count']>1].tolist() 
-        
+    dup_pmids = duplitcheckdf['litcovid'].loc[duplitcheckdf['litcovid_count']>1].tolist()        
     duplicates = preprint_matches.loc[(preprint_matches['litcovid'].isin(dup_pmids)) | 
                                       (preprint_matches['preprint'].isin(dup_preprints))]
     lowscores = preprint_matches.loc[preprint_matches['sum_score']<threshold['sum_min']]
-
     clean_matches = preprint_matches.loc[(~preprint_matches['litcovid'].isin(dup_pmids)) &
                                          (~preprint_matches['preprint'].isin(dup_preprints)) &
                                          (preprint_matches['sum_score']>=threshold['sum_min'])]
-
     manual_check = pandas.concat((duplicates,lowscores),ignore_index=True)
-    return(clean_matches,lowscores,manual_check)    
+    return(clean_matches,lowscores,manual_check)   
+    
     
 #### Functions for cleaning up the results
 def convert_txt_dumps(txtdump):
@@ -189,7 +211,6 @@ def convert_txt_dumps(txtdump):
                                                             'url':txtdump.iloc[i]['url']}]}
         dictlist.append(tmpdict)
     return(dictlist)
-
 
 def generate_updates(updatedf):
     priorupdates = read_csv('results/update dumps/update_file.tsv',delimiter="\t",header=0,index_col=0)
@@ -217,6 +238,7 @@ def generate_updates(updatedf):
     return(corrections_added)
     
 #### Functions for updating the save files
+## Update the complete ids for preprints and litcovid
 def update_archives(all_ids):
     if 'pmid' in list(all_ids)[0]:
         filename = 'all_litcovid_ids'
@@ -225,6 +247,7 @@ def update_archives(all_ids):
     with open('results/archives/'+filename+'.txt', 'wb') as dmpfile:
         pickle.dump(all_ids, dmpfile)
 
+## Function to update the bag of words dataframes
 def update_precompute(clean_df_set):
     if 'pmid' in clean_df_set['_id'].iloc[0]:
         df_source = "litcovid"
@@ -240,6 +263,7 @@ def update_precompute(clean_df_set):
     with open("results/archives/"+df_type+"_"+df_source+"_set.txt", "wb") as dmpfile:
         pickle.dump(updated_info, dmpfile)
 
+## Function to update the save files for manual review or further processing (formatting for biothings)        
 def update_results(result_df):
     update_dict = {}
     dupcheck = result_df.groupby('litcovid').size().reset_index(name='counts')
@@ -249,30 +273,33 @@ def update_results(result_df):
         update_dict['previous matches for manual checking']=len(old_manual_check)
         update_dict['current matches for manual checking'] =len(result_df)
         total_manual_check = pandas.concat((old_manual_check,result_df),ignore_index=True)
-        total_manual_check.drop_duplicates(subset='_id',keep='first',inplace=True)
+        total_manual_check.drop_duplicates(subset=['litcovid','preprint'],keep='first',inplace=True)
         total_manual_check.to_csv('results/to review/manual_check.txt',sep='\t',header=True)
     elif result_df['sum_score'].max() < 0.75:
         old_low_scores = read_csv('results/to review/low_scores.txt',delimiter='\t',header=0,index_col=0)
         update_dict['previous matches with low scores']=len(old_low_scores)
         update_dict['current matches with low scores'] =len(result_df)
         old_low_scores = pandas.concat((old_low_scores,result_df),ignore_index=True)
-        old_low_scores.drop_duplicates(subset='_id',keep='first',inplace=True)
+        old_low_scores.drop_duplicates(subset=['litcovid','preprint'],keep='first',inplace=True)
         old_low_scores.to_csv('results/to review/low_scores.txt',sep='\t',header=True)
     elif (len(dupcheck) == len(result_df)) and (len(dupcheck2)==len(result_df)):
         old_clean_results = read_csv('results/archives/clean_results.txt',delimiter='\t',header=0,index_col=0)
         update_dict['previous matches for updating']=len(old_clean_results)
         update_dict['current matches for updating'] =len(result_df)
         old_clean_results = pandas.concat((old_clean_results,result_df),ignore_index=True)
-        old_clean_results.drop_duplicates(subset='_id',keep='first',inplace=True)
+        old_clean_results.drop_duplicates(subset=['litcovid','preprint'],keep='first',inplace=True)
         old_clean_results.to_csv('results/archives/clean_results.txt',sep='\t',header=True)
     return(update_dict)       
 
 
     
+
 #### Main function
 thresholds = {"auth":0.45,
               "text":0.2,
               "sum_min":0.75}
+
+changeinfo = {'run start':datetime.now()}
 
 changeinfo = {'run start':datetime.now()}
 
@@ -281,9 +308,12 @@ all_preprint_ids,all_litcovid_ids = get_pub_ids()
 preprint_ids = remove_old_ids(all_preprint_ids)
 litcovid_ids = remove_old_ids(all_litcovid_ids)
 
+## fetch metadata
 if len(preprint_ids) > 0:
     update_archives(all_preprint_ids) ##update the archive file only if there are new ids
     preprint_textdf,preprint_authdf = batch_fetch_meta(preprint_ids) ## get meta for new ids
+checktimes.append({'process':'fetch preprint meta','timestart':starttime,'endtime':datetime.now(),'runtime':datetime.now()-starttime})
+
 if len(litcovid_ids) > 0:
     update_archives(all_litcovid_ids) ##update the archive file only if there are new ids
     litcovid_textdf,litcovid_authdf = batch_fetch_meta(litcovid_ids) ## get meta for new ids
@@ -292,8 +322,8 @@ if len(litcovid_ids) > 0:
 changeinfo['total litcovid ids']=len(all_litcovid_ids)
 changeinfo['total preprint ids']=len(all_preprint_ids)
 changeinfo['new litcovid ids']=len(litcovid_ids)
-changeinfo['new preprint ids']=len(preprint_ids)    
-    
+changeinfo['new preprint ids']=len(preprint_ids)
+
 ## Prep for comparison
 clean_lit_text,clean_lit_auth = clean_source_data(litcovid_textdf,litcovid_authdf,'litcovid')
 clean_rxiv_text,clean_rxiv_auth = clean_source_data(preprint_textdf,preprint_authdf,'preprint')
@@ -308,10 +338,18 @@ old_rxiv_auth = remove_matched_values('preprint','auth')
 ## Clean up the temp files prior to the comparison run
 blank_temps()
 
-#### THIS IS THE SLOW PART OF THE SCRIPT ####
+
+#### Run the comparisons (this is the slowest step)
+
+## run new preprints against previous litcovid entries:
+if len(clean_rxiv_text)>0:
+    run_comparison(clean_rxiv_text,old_litcovid_text,'text', thresholds)
+if len(clean_rxiv_auth)>0:
+    run_comparison(clean_rxiv_auth,old_litcovid_auth,'auth', thresholds)
+
 ## run new preprints against new litcovid entries:
 if len(clean_rxiv_auth)>0 and len(clean_lit_auth)>0:
-    run_comparison(clean_rxiv_auth,clean_lit_auth,'auth', thresholds)        
+    run_comparison(clean_rxiv_auth,clean_lit_auth,'auth', thresholds)
 if len(clean_rxiv_text)>0 and len(clean_lit_text)>0:
     run_comparison(clean_rxiv_text,clean_lit_text,'text', thresholds)
 
@@ -321,13 +359,6 @@ if len(clean_lit_text)>0:
 if len(clean_lit_auth)>0:
     run_comparison(old_rxiv_auth,clean_lit_auth,'auth', thresholds)
 
-## run new preprints against previously litcovid entries:
-if len(clean_rxiv_text)>0:
-    run_comparison(clean_rxiv_text,old_litcovid_text,'text', thresholds)
-if len(clean_rxiv_auth)>0:
-    run_comparison(clean_rxiv_auth,old_litcovid_auth,'auth', thresholds)    
-#### THIS WAS THE SLOW PART OF THE SCRIPT ####
-    
 ## update the set after the run
 update_precompute(clean_lit_text)
 update_precompute(clean_lit_auth)
@@ -341,50 +372,29 @@ except:
 try:
     new_auth_matches = read_csv('results/temp/auth_above_threshold.txt',delimiter='\t',header=0)
 except:
-    new_auth_matches = pandas.DataFrame(columns=['litcovid','preprint','j_sim'])    
-    
+    new_auth_matches = pandas.DataFrame(columns=['litcovid','preprint','j_sim'])
+
 if len(new_text_matches)<1 or len(new_auth_matches)<1:
     matchupdates = False
 else:
     matchupdates = True
-    clean_matches,lowscores,manual_check = sort_matches(new_text_matches,new_auth_matches,thresholds)    
+    clean_matches,lowscores,manual_check = sort_matches(new_text_matches,new_auth_matches,thresholds)
     
 corrections_added = generate_updates(clean_matches)
 changeinfo['new matches found']=len(clean_matches)
 changeinfo['new matches to review']=len(manual_check)
 changeinfo['new low scoring matches']=len(lowscores)
-changeinfo['new updates to make']=corrections_added    
-    
-manual_check_update = update_results(manual_check)
-changeinfo.update(manual_check_update)
-lowscores_update = update_results(lowscores)
-changeinfo.update(lowscores_update)
-clean_match_update = update_results(clean_matches)
-changeinfo.update(clean_match_update)
+changeinfo['new updates to make']=corrections_added
+
+if len(manual_check)>0:
+    manual_check_update = update_results(manual_check)
+    changeinfo.update(manual_check_update)
+if len(lowscores)>0:
+    lowscores_update = update_results(lowscores)
+    changeinfo.update(lowscores_update)
+if len(clean_matches)>0:
+    clean_match_update = update_results(clean_matches)
+    changeinfo.update(clean_match_update)
 changeinfo['run complete'] = datetime.now()
 with open('results/temp/run_log.txt','ab') as dmpfile:
     pickle.dump(changeinfo, dmpfile)    
-    
-init_dmp = read_csv('results/update dumps/update_file.tsv', delimiter='\t', header=0, index_col=0)
-dictlist = convert_txt_dumps(init_dmp)
-with open('results/update dumps/update_file.json', 'w', encoding='utf-8') as f:
-    json.dump(dictlist, f)    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
