@@ -8,7 +8,9 @@ import string
 from nltk.corpus import stopwords
 stopwords = stopwords.words("english")
 from datetime import datetime
+import pathlib
 
+script_path = pathlib.Path(__file__).parent.absolute()
 
 #### Functions to get updated ids
 #### Get the size of the source (to make it easy to figure out when to stop scrolling)
@@ -58,8 +60,8 @@ def get_pub_ids():
 
 #### Load the previously saved id lists, and compare the two to identify only the new ids
 def remove_old_ids(allidlist):
-    preprint_run = pickle.load(open("results/archives/all_preprint_ids.txt", "rb"))
-    litcovid_run = pickle.load(open("results/archives/all_litcovid_ids.txt", "rb"))
+    preprint_run = pickle.load(open(script_path + "results/archives/all_preprint_ids.txt", "rb"))
+    litcovid_run = pickle.load(open(script_path + "results/archives/all_litcovid_ids.txt", "rb"))
     old_id_list = list(set(preprint_run).union(set(litcovid_run)))
     new_ids_only = [x for x in allidlist if x not in old_id_list]
     return(new_ids_only)
@@ -139,9 +141,9 @@ def clean_source_data(textdf,authdf,source):
     
 #### Functions for removing successful matches from old metadata prior to running comparisons
 def remove_matched_values(source,dftype):
-    clean_matches = read_csv('results/archives/clean_results.txt',delimiter='\t',header=0,index_col=0)
+    clean_matches = read_csv(script_path + 'results/archives/clean_results.txt',delimiter='\t',header=0,index_col=0)
     matched_ids = clean_matches[source].unique().tolist()
-    with open("results/archives/"+dftype+"_"+source+"_set.txt", "rb") as openfile:
+    with open(script_path + "results/archives/"+dftype+"_"+source+"_set.txt", "rb") as openfile:
         old_source = pickle.load(openfile)
     clean_source = old_source.loc[~old_source['_id'].isin(matched_ids)]
     return(clean_source)   
@@ -149,7 +151,7 @@ def remove_matched_values(source,dftype):
 #### Functions for comparing metadata
 ## Blank out the previous temp files 
 def blank_temps():
-    tmppath='results/temp/'
+    tmppath=script_path + 'results/temp/'
     tmpfiles = ['auth_above_threshold.txt','text_above_threshold.txt']
     for eachfile in tmpfiles:
         with open(tmppath+eachfile,'w') as outwrite:
@@ -173,7 +175,7 @@ def run_comparison(preprint_set,litcovid_set,set_type, thresholds):
             j_dist = nltk.jaccard_distance(set(sample_set1), set(sample_set2))
             j_sim = 1-j_dist
             if j_sim > thresholds[set_type]:
-                with open("results/temp/"+set_type+"_above_threshold.txt","a") as dump:
+                with open(script_path + "results/temp/"+set_type+"_above_threshold.txt","a") as dump:
                     dump.write(litcovid_id+'\t'+preprint_id+'\t'+str(j_sim)+'\n')
             j=j+1
         i=i+1
@@ -213,7 +215,7 @@ def convert_txt_dumps(txtdump):
     return(dictlist)
 
 def generate_updates(updatedf):
-    priorlitcovidupdates = read_csv('results/update dumps/litcovid_update_file.tsv',delimiter="\t",header=0,index_col=0)
+    priorlitcovidupdates = read_csv(script_path + 'results/update dumps/litcovid_update_file.tsv',delimiter="\t",header=0,index_col=0)
     correctionA = updatedf[['litcovid','preprint']].copy()
     correctionA.rename(columns={'litcovid':'_id','preprint':'correction.identifier'},inplace=True)
     correctionA['@type']='outbreak:Correction'
@@ -223,12 +225,12 @@ def generate_updates(updatedf):
     correctionA.drop('baseurl',axis=1,inplace=True)
     correctionAupdate = pandas.concat((priorlitcovidupdates,correctionA),ignore_index=True)
     correctionAupdate.drop_duplicates(keep='first')
-    correctionAupdate.to_csv('results/update dumps/litcovid_update_file.tsv',sep="\t",header=True)
+    correctionAupdate.to_csv(script_path + 'results/update dumps/litcovid_update_file.tsv',sep="\t",header=True)
     json_correctionsA = convert_txt_dumps(correctionAupdate)
     with open('results/update dumps/litcovid_update_file.json', 'w', encoding='utf-8') as f:
         json.dump(json_correctionsA, f)
 
-    priorpreprintupdates = read_csv('results/update dumps/preprint_update_file.tsv',delimiter="\t",header=0,index_col=0)    
+    priorpreprintupdates = read_csv(script_path + 'results/update dumps/preprint_update_file.tsv',delimiter="\t",header=0,index_col=0)    
     correctionB = updatedf[['litcovid','preprint']].copy()
     correctionB.rename(columns={'litcovid':'correction.identifier','preprint':'_id'},inplace=True)
     correctionB['@type']='outbreak:Correction'
@@ -238,9 +240,9 @@ def generate_updates(updatedf):
     correctionB.drop('baseurl',axis=1,inplace=True)
     correctionBupdate = pandas.concat((priorpreprintupdates,correctionB),ignore_index=True)
     correctionBupdate.drop_duplicates(keep='first')
-    correctionBupdate.to_csv('results/update dumps/preprint_update_file.tsv',sep="\t",header=True)
+    correctionBupdate.to_csv(script_path + 'results/update dumps/preprint_update_file.tsv',sep="\t",header=True)
     json_correctionsB = convert_txt_dumps(correctionBupdate)
-    with open('results/update dumps/preprint_update_file.json', 'w', encoding='utf-8') as f:
+    with open(script_path + 'results/update dumps/preprint_update_file.json', 'w', encoding='utf-8') as f:
         json.dump(json_correctionsB, f)
     corrections_added = len(correctionBupdate)+len(correctionAupdate)
     return(corrections_added)
@@ -253,7 +255,7 @@ def update_archives(all_ids):
         filename = 'all_litcovid_ids'
     else:
         filename = 'all_preprint_ids'
-    with open('results/archives/'+filename+'.txt', 'wb') as dmpfile:
+    with open(script_path + 'results/archives/'+filename+'.txt', 'wb') as dmpfile:
         pickle.dump(all_ids, dmpfile)
 
 ## Function to update the bag of words dataframes
@@ -266,10 +268,10 @@ def update_precompute(clean_df_set):
         df_type = 'auth'
     else:
         df_type = 'text'
-    with open("results/archives/"+df_type+"_"+df_source+"_set.txt", "rb") as tmpfile:
+    with open(script_path + "results/archives/"+df_type+"_"+df_source+"_set.txt", "rb") as tmpfile:
         old_info = pickle.load(tmpfile)
     updated_info = pandas.concat((old_info,clean_df_set),ignore_index=True)
-    with open("results/archives/"+df_type+"_"+df_source+"_set.txt", "wb") as dmpfile:
+    with open(script_path + "results/archives/"+df_type+"_"+df_source+"_set.txt", "wb") as dmpfile:
         pickle.dump(updated_info, dmpfile)
 
 ## Function to update the save files for manual review or further processing (formatting for biothings)        
@@ -278,26 +280,26 @@ def update_results(result_df):
     dupcheck = result_df.groupby('litcovid').size().reset_index(name='counts')
     dupcheck2 = result_df.groupby('preprint').size().reset_index(name='counts')
     if len(dupcheck.loc[dupcheck['counts']>1]) or len(dupcheck2.loc[dupcheck2['counts']>1]):
-        old_manual_check = read_csv('results/to review/manual_check.txt',delimiter='\t',header=0,index_col=0)
+        old_manual_check = read_csv(script_path + 'results/to review/manual_check.txt',delimiter='\t',header=0,index_col=0)
         update_dict['previous matches for manual checking']=len(old_manual_check)
         update_dict['current matches for manual checking'] =len(result_df)
         total_manual_check = pandas.concat((old_manual_check,result_df),ignore_index=True)
         total_manual_check.drop_duplicates(subset=['litcovid','preprint'],keep='first',inplace=True)
-        total_manual_check.to_csv('results/to review/manual_check.txt',sep='\t',header=True)
+        total_manual_check.to_csv(script_path + 'results/to review/manual_check.txt',sep='\t',header=True)
     elif result_df['sum_score'].max() < 0.75:
-        old_low_scores = read_csv('results/to review/low_scores.txt',delimiter='\t',header=0,index_col=0)
+        old_low_scores = read_csv(script_path + 'results/to review/low_scores.txt',delimiter='\t',header=0,index_col=0)
         update_dict['previous matches with low scores']=len(old_low_scores)
         update_dict['current matches with low scores'] =len(result_df)
         old_low_scores = pandas.concat((old_low_scores,result_df),ignore_index=True)
         old_low_scores.drop_duplicates(subset=['litcovid','preprint'],keep='first',inplace=True)
-        old_low_scores.to_csv('results/to review/low_scores.txt',sep='\t',header=True)
+        old_low_scores.to_csv(script_path + 'results/to review/low_scores.txt',sep='\t',header=True)
     elif (len(dupcheck) == len(result_df)) and (len(dupcheck2)==len(result_df)):
-        old_clean_results = read_csv('results/archives/clean_results.txt',delimiter='\t',header=0,index_col=0)
+        old_clean_results = read_csv(script_path + 'results/archives/clean_results.txt',delimiter='\t',header=0,index_col=0)
         update_dict['previous matches for updating']=len(old_clean_results)
         update_dict['current matches for updating'] =len(result_df)
         old_clean_results = pandas.concat((old_clean_results,result_df),ignore_index=True)
         old_clean_results.drop_duplicates(subset=['litcovid','preprint'],keep='first',inplace=True)
-        old_clean_results.to_csv('results/archives/clean_results.txt',sep='\t',header=True)
+        old_clean_results.to_csv(script_path + 'results/archives/clean_results.txt',sep='\t',header=True)
     return(update_dict)       
 
 
@@ -375,11 +377,11 @@ update_precompute(clean_rxiv_text)
 update_precompute(clean_rxiv_auth)
 
 try:
-    new_text_matches = read_csv('results/temp/text_above_threshold.txt',delimiter='\t',header=0)
+    new_text_matches = read_csv(script_path + 'results/temp/text_above_threshold.txt',delimiter='\t',header=0)
 except:
     new_text_matches = pandas.DataFrame(columns=['litcovid','preprint','j_sim'])
 try:
-    new_auth_matches = read_csv('results/temp/auth_above_threshold.txt',delimiter='\t',header=0)
+    new_auth_matches = read_csv(script_path + 'results/temp/auth_above_threshold.txt',delimiter='\t',header=0)
 except:
     new_auth_matches = pandas.DataFrame(columns=['litcovid','preprint','j_sim'])
 
@@ -405,5 +407,5 @@ if len(clean_matches)>0:
     clean_match_update = update_results(clean_matches)
     changeinfo.update(clean_match_update)
 changeinfo['run complete'] = datetime.now()
-with open('results/temp/run_log.txt','ab') as dmpfile:
+with open(script_path + 'results/temp/run_log.txt','ab') as dmpfile:
     pickle.dump(changeinfo, dmpfile)    
