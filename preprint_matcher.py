@@ -323,7 +323,6 @@ litcovid_ids = remove_old_ids(all_litcovid_ids)
 if len(preprint_ids) > 0:
     update_archives(all_preprint_ids) ##update the archive file only if there are new ids
     preprint_textdf,preprint_authdf = batch_fetch_meta(preprint_ids) ## get meta for new ids
-checktimes.append({'process':'fetch preprint meta','timestart':starttime,'endtime':datetime.now(),'runtime':datetime.now()-starttime})
 
 if len(litcovid_ids) > 0:
     update_archives(all_litcovid_ids) ##update the archive file only if there are new ids
