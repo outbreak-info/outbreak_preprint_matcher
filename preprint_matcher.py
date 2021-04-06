@@ -246,7 +246,7 @@ def update_archives(all_ids):
         filename = 'all_litcovid_ids'
     else:
         filename = 'all_preprint_ids'
-    with open(os.path.join(script_path, f'results/archives/{filename}.txt', 'wb') as dmpfile:
+    with open(os.path.join(script_path, f'results/archives/{filename}.txt'), 'wb') as dmpfile:
         pickle.dump(all_ids, dmpfile)
 
 ## Function to update the bag of words dataframes
@@ -262,7 +262,7 @@ def update_precompute(clean_df_set):
     with open(os.path.join(script_path, f"results/archives/{df_type}_{df_source}_set.txt"), "rb") as tmpfile:
         old_info = pickle.load(tmpfile)
     updated_info = pandas.concat((old_info,clean_df_set),ignore_index=True)
-    with open(os.path.join(script_path, f"results/archives/{df_type}_{df_source}_set.txt", "wb") as dmpfile:
+    with open(os.path.join(script_path, f"results/archives/{df_type}_{df_source}_set.txt"), "wb") as dmpfile:
         pickle.dump(updated_info, dmpfile)
 
 ## Function to update the save files for manual review or further processing (formatting for biothings)        
