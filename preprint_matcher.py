@@ -315,7 +315,7 @@ litcovid_ids = remove_old_ids(all_litcovid_ids)
 if len(preprint_ids) > 0:
     preprint_textdf,preprint_authdf = batch_fetch_meta(preprint_ids) ## get meta for new ids
     update_archives(all_preprint_ids) ##update the archive file only if there are new ids
-   
+
 
 if len(litcovid_ids) > 0:
     litcovid_textdf,litcovid_authdf = batch_fetch_meta(litcovid_ids) ## get meta for new ids
