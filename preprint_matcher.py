@@ -93,14 +93,14 @@ def batch_fetch_meta(idlist):
             rawresult = pandas.read_json(r.text)
             cleanresult = rawresult[['_id','name','abstract','date']].loc[rawresult['_score']==1].copy()
             cleanresult.drop_duplicates(subset='_id',keep="first", inplace=True)
-            textdf = pandas.concat((textdf,cleanresult))
+            textdf = pandas.concat((textdf,cleanresult),ignore_index=True)
         ## Get the author metadata and save it    
         a = requests.post("https://api.outbreak.info/resources/query/", params = {'q': sample_ids, 'scopes': '_id', 'fields': 'author,date'})
         if a.status_code == 200:
             rawresult = pandas.read_json(a.text)
             cleanresult = rawresult[['_id','author','date']].loc[rawresult['_score']==1].copy()
             cleanresult.drop_duplicates(subset='_id',keep="first", inplace=True)
-            authdf = pandas.concat((authdf,cleanresult))
+            authdf = pandas.concat((authdf,cleanresult),ignore_index=True)
         i=i+1
     return(textdf,authdf)
  
@@ -313,12 +313,14 @@ litcovid_ids = remove_old_ids(all_litcovid_ids)
 
 ## fetch metadata
 if len(preprint_ids) > 0:
-    update_archives(all_preprint_ids) ##update the archive file only if there are new ids
     preprint_textdf,preprint_authdf = batch_fetch_meta(preprint_ids) ## get meta for new ids
+    update_archives(all_preprint_ids) ##update the archive file only if there are new ids
+   
 
 if len(litcovid_ids) > 0:
-    update_archives(all_litcovid_ids) ##update the archive file only if there are new ids
     litcovid_textdf,litcovid_authdf = batch_fetch_meta(litcovid_ids) ## get meta for new ids
+    update_archives(all_litcovid_ids) ##update the archive file only if there are new ids
+    
     
 ## log changes
 changeinfo['total litcovid ids']=len(all_litcovid_ids)
