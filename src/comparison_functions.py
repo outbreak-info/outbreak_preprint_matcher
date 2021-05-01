@@ -29,9 +29,10 @@ def check_b4_compare(newdf,olddf):
     oldids = set(olddf['_id'].unique().tolist())
     incommon = oldids.intersection(newids)
     if len(incommon)/len(newids)>0.67:
-        newdata = False 
+        newdata = False ## There isn't much new data that isn't already in the archived data
     else:
-        newdata = True 
+        newdata = True ## New data available
+    return(newdata)
         
 
 #### Generate id_lists by topicCategory  
