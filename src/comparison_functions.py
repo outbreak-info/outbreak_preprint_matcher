@@ -36,9 +36,17 @@ def check_b4_compare(newdf,olddf):
 
 #### Generate id_lists by topicCategory  
 def generate_comparison_dfs(topicdf,litcoviddf,preprintdf,topicCategory):
-    idlist = topicdf['_id'].loc[topicdf['topicCategory']==topicCategory].unique().tolist()
-    preprint_topicdf = preprintdf.loc[preprintdf['_id'].isin(idlist)]
-    litcovid_topicdf = litcoviddf.loc[litcoviddf['_id'].isin(idlist)]
+    if topicCategory==None:
+        idlist = topicdf['_id'].unique().tolist()
+        preprint_topicdf = preprintdf.loc[~preprintdf['_id'].isin(idlist)]
+        litcovid_topicdf = litcoviddf.loc[~litcoviddf['_id'].isin(idlist)]         
+    else:
+        idlist = topicdf['_id'].loc[topicdf['topicCategory']==topicCategory].unique().tolist()
+        alltopicids = topicdf['_id'].unique().tolist()
+        preprint_topicdf = preprintdf.loc[((preprintdf['_id'].isin(idlist))|
+                                          (~preprintdf['_id'].isin(alltopicids)))]
+        litcovid_topicdf = litcoviddf.loc[((litcoviddf['_id'].isin(idlist))|
+                                          (~litcoviddf['_id'].isin(alltopicids)))]       
     return(preprint_topicdf,litcovid_topicdf)
 
 
