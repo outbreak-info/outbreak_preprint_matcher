@@ -63,31 +63,31 @@ def get_date(datedict):
 
 
 #### Load the previously saved id lists, and compare the two to identify only the new ids
-def remove_old_ids(preprint_ids,litcovid_ids,ARCHIVEPATH,TEMPPATH):
-    preprint_run = pickle.load(open(os.path.join(ARCHIVEPATH,"all_preprint_ids.txt"), "rb"))
-    litcovid_run = pickle.load(open(os.path.join(ARCHIVEPATH,"all_litcovid_ids.txt"), "rb"))
+def remove_old_ids(preprint_dict,litcovid_dict,ARCHIVEPATH,TEMPPATH):
+    preprint_run = pickle.load(open(os.path.join(ARCHIVEPATH,"all_preprint_dict.txt"), "rb"))
+    litcovid_run = pickle.load(open(os.path.join(ARCHIVEPATH,"all_litcovid_dict.txt"), "rb"))
     old_preprint_date = get_date(preprint_run)
     old_litcovid_date = get_date(litcovid_run)
-    all_preprint_date = get_date(preprint_ids)
-    all_litcovid_date = get_date(litcovid_ids)
+    all_preprint_date = get_date(preprint_dict)
+    all_litcovid_date = get_date(litcovid_dict)
     old_pre_str_date = datetime.strftime(old_preprint_date,'%Y-%m-%d')
     old_lit_str_date = datetime.strftime(old_litcovid_date,'%Y-%m-%d')
     all_pre_str_date = datetime.strftime(all_preprint_date,'%Y-%m-%d')
     all_lit_str_date = datetime.strftime(all_litcovid_date,'%Y-%m-%d')
-    if (all_preprint_date-old_preprint_date)> timedelta(days=2):
-        new_preprint_ids = [x for x in preprint_ids[all_pre_str_date] if x not in preprint_run[old_pre_str_date]]
+    if (all_preprint_date-old_preprint_date)> timedelta(days=1):
+        new_preprint_ids = [x for x in preprint_dict[all_pre_str_date] if x not in preprint_run[old_pre_str_date]]
         new_preprint_dict = {all_pre_str_date:new_preprint_ids}
-        with open(os.path.join(TEMPPATH,"new_preprint_ids.txt"),"wb") as dumpfile:
+        with open(os.path.join(TEMPPATH,"new_preprint_dict.txt"),"wb") as dumpfile:
             pickle.dump(new_preprint_dict,dumpfile)
-        with open(os.path.join(ARCHIVEPATH,"all_preprint_ids.txt"),"wb") as dumpfile:
-            pickle.dump(preprint_ids,dumpfile)       
-    if (all_litcovid_date-old_litcovid_date)> timedelta(days=2):
-        new_litcovid_ids = [x for x in litcovid_ids[all_lit_str_date] if x not in litcovid_run[old_lit_str_date]]
+        with open(os.path.join(ARCHIVEPATH,"all_preprint_dict.txt"),"wb") as dumpfile:
+            pickle.dump(preprint_dict,dumpfile)       
+    if (all_litcovid_date-old_litcovid_date)> timedelta(days=1):
+        new_litcovid_ids = [x for x in litcovid_dict[all_lit_str_date] if x not in litcovid_run[old_lit_str_date]]
         new_litcovid_dict = {all_lit_str_date:new_litcovid_ids}
-        with open(os.path.join(TEMPPATH,"new_litcovid_ids.txt"),"wb") as dumpfile:
+        with open(os.path.join(TEMPPATH,"new_litcovid_dict.txt"),"wb") as dumpfile:
             pickle.dump(new_litcovid_dict,dumpfile)
-        with open(os.path.join(ARCHIVEPATH,"all_litcovid_ids.txt"),"wb") as dumpfile:
-            pickle.dump(litcovid_ids,dumpfile) 
+        with open(os.path.join(ARCHIVEPATH,"all_litcovid_dict.txt"),"wb") as dumpfile:
+            pickle.dump(litcovid_dict,dumpfile) 
 
             
 def check_id_update_status(TEMPPATH):
