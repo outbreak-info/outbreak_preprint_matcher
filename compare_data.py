@@ -15,11 +15,14 @@ import pathlib
 from src.comparison_functions import *
 
 scriptpath = pathlib.Path(__file__).parent.absolute()
-generalpath = pathlib.Path(__file__).parents[0]
+try:
+    generalpath = pathlib.Path(__file__).parents[1].absolute()
+except:
+    generalpath = pathlib.Path(__file__).resolve().parents[1].absolute()
 RESULTSPATH = os.path.join(scriptpath,'results/')
 ARCHIVEPATH = os.path.join(RESULTSPATH,'archives/')
 TEMPPATH = os.path.join(RESULTSPATH,'temp/')
-TOPICPATH = os.path.join(generalpath,'topic_classifier/results')
+TOPICPATH = os.path.join(generalpath,'topic_classifier/results/') 
 TOPICFILE = read_csv(os.path.join(TOPICPATH,'topicCats.tsv'),delimiter='\t',header=0,index_col=0,
                      converters={"topicCategory": lambda x: x.strip("[]").replace("'","").split(", ")})
 TOPICFILE.fillna({i: [] for i in TOPICFILE.index})
@@ -117,7 +120,7 @@ elif new_rxiv==False and new_litcovid==True:
             pass
 
 elif new_rxiv==True and new_litcovid==False:
-    print("no point in comparing new preprints to old litcovid entries)
+    print("no point in comparing new preprints to old litcovid entries")
           
 else:
     print("nothing new to compare")

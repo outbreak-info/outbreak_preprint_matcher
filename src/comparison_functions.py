@@ -25,13 +25,13 @@ def load_previous_runs(ARCHIVEPATH):
 
 #### Check if 2/3 of the new ids are already in the old ids. If so, then there's no need to do the comparison
 def check_b4_compare(newdf,olddf):
-    newids = set(newdf['_id'].unique().tolist)
-    oldids = set(olddf['_id'].unique().tolist)
+    newids = set(newdf['_id'].unique().tolist())
+    oldids = set(olddf['_id'].unique().tolist())
     incommon = oldids.intersection(newids)
     if len(incommon)/len(newids)>0.67:
-        newdata = False
+        newdata = False 
     else:
-        newdata = True
+        newdata = True 
         
 
 #### Generate id_lists by topicCategory  
