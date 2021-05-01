@@ -1,10 +1,11 @@
 import os
 import requests
 import pickle
+import json
 from datetime import datetime,timedelta
 import pandas as pd
 from pandas import read_csv
-from cleaning_functions import *
+from src.cleaning_functions import *
 
 #### Get the size of the source (to make it easy to figure out when to stop scrolling)
 def fetch_src_size(source):
@@ -56,7 +57,7 @@ def get_pub_ids():
 
 
 def get_date(datedict):
-    for eachdate in datedict.keys():
+    for eachdate in list(datedict.keys()):
         dict_date = datetime.strptime(eachdate,'%Y-%m-%d')
     return(dict_date)
 
@@ -89,11 +90,11 @@ def remove_old_ids(preprint_ids,litcovid_ids,ARCHIVEPATH,TEMPPATH):
             pickle.dump(litcovid_ids,dumpfile) 
 
             
-def check_id_update_status(ARCHIVEPATH):
+def check_id_update_status(TEMPPATH):
     today = datetime.now()
-    preprint_run = pickle.load(open(os.path.join(ARCHIVEPATH,"all_preprint_ids.txt"), "rb"))
-    litcovid_run = pickle.load(open(os.path.join(ARCHIVEPATH,"all_litcovid_ids.txt"), "rb"))
+    preprint_run = pickle.load(open(os.path.join(TEMPPATH,"new_preprint_dict.txt"), "rb"))
     old_preprint_date = get_date(preprint_run)
+    litcovid_run = pickle.load(open(os.path.join(TEMPPATH,"new_litcovid_dict.txt"), "rb"))
     old_litcovid_date = get_date(litcovid_run)
     run_dict = {'preprint_updated':False,'litcovid_updated':False}
     if (today-old_preprint_date) < timedelta(days = 1):
@@ -104,11 +105,11 @@ def check_id_update_status(ARCHIVEPATH):
 
 
 def run_id_update(ARCHIVEPATH,TEMPPATH):
-    run_dict = check_id_update_status(ARCHIVEPATH)
+    run_dict = check_id_update_status(TEMPPATH)
     if False in list(run_dict.values()):
         all_preprint_ids,all_litcovid_ids = get_pub_ids()
         remove_old_ids(all_preprint_ids,all_litcovid_ids,ARCHIVEPATH,TEMPPATH)
-        run_dict = check_id_update_status(ARCHIVEPATH)
+        run_dict = check_id_update_status(TEMPPATH)
         return(run_dict)
     else:
         return(run_dict)
