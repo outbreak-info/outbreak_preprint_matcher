@@ -25,6 +25,7 @@ thresholds = {"auth":0.45,
 ## update the set after the run
 runcheck_dict = check_comparison_run(TEMPPATH)
 if False not in list(runcheck_dict.values()):
+    clean_rxiv_text,clean_rxiv_auth,clean_lit_text,clean_lit_auth = load_new_meta(TEMPPATH)
     update_precompute(clean_lit_text,ARCHIVEPATH)
     update_precompute(clean_lit_auth,ARCHIVEPATH)
     update_precompute(clean_rxiv_text,ARCHIVEPATH)
@@ -36,7 +37,7 @@ if False not in list(runcheck_dict.values()):
     except:
         new_text_matches = pd.DataFrame(columns=['litcovid','preprint','j_sim'])
     try:
-        new_auth_matches = read_csv('results/temp/auth_above_threshold.txt',delimiter='\t',header=0,index_col=False)
+        new_auth_matches = read_csv(os.path.join(TEMPPATH,'auth_above_threshold.txt'),delimiter='\t',header=0,index_col=False)
         if 'Unnamed: 0' in new_auth_matches.columns:
             new_auth_matches.drop('Unnamed: 0',axis=1,inplace=True)
     except:
@@ -48,6 +49,7 @@ if False not in list(runcheck_dict.values()):
         matchupdates = True
         clean_matches,lowscores,manual_check = sort_matches(new_text_matches,new_auth_matches,thresholds)
     corrections_added = generate_updates(clean_matches,OUTPUTPATH)
+    split_corrections_added = generate_split_updates(clean_matches,OUTPUTPATH)
     manual_check_update = update_results(manual_check,ARCHIVEPATH,REVIEWPATH)
     lowscores_update = update_results(lowscores,ARCHIVEPATH,REVIEWPATH)
     clean_match_update = update_results(clean_matches,ARCHIVEPATH,REVIEWPATH)

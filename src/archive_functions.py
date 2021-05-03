@@ -23,7 +23,7 @@ def update_precompute(clean_df_set,ARCHIVEPATH):
     with open(os.path.join(ARCHIVEPATH,filename), "rb") as tmpfile:
         old_info = pickle.load(tmpfile)
     updated_info = pd.concat((old_info,clean_df_set),ignore_index=True)
-    updated_info.drop_duplicates(keep='last',inplace=True)
+    updated_info.drop_duplicates(subset='_id',keep='last',inplace=True)
     with open(os.path.join(ARCHIVEPATH,filename), "wb") as dmpfile:
         pickle.dump(updated_info, dmpfile)
 
@@ -64,6 +64,40 @@ def generate_updates(updatedf,OUTPUTPATH):
     json_corrections = convert_txt_dumps(correctionupdate)
     with open(os.path.join(OUTPUTPATH,'update_file.json'), 'w', encoding='utf-8') as f:
         json.dump(json_corrections, f)
+    return(corrections_added)
+
+
+#### save the results to different files
+def generate_split_updates(updatedf,OUTPUTPATH):
+    priorlitcovidupdates = read_csv(os.path.join(OUTPUTPATH,'litcovid_update_file.tsv'),delimiter="\t",header=0,index_col=0)
+    correctionA = updatedf[['litcovid','preprint']].copy()
+    correctionA.rename(columns={'litcovid':'_id','preprint':'correction.identifier'},inplace=True)
+    correctionA['@type']='outbreak:Correction'
+    correctionA['correction.correctionType']='preprint'
+    correctionA['baseurl']='https://doi.org/10.1101/'
+    correctionA['correction.url']=correctionA['baseurl'].str.cat(correctionA['correction.identifier'])
+    correctionA.drop('baseurl',axis=1,inplace=True)
+    correctionAupdate = pd.concat((priorlitcovidupdates,correctionA),ignore_index=True)
+    correctionAupdate.drop_duplicates(keep='first')
+    correctionAupdate.to_csv(os.path.join(OUTPUTPATH,'litcovid_update_file.tsv'),sep="\t",header=True)
+    json_correctionsA = convert_txt_dumps(correctionAupdate)
+    with open(os.path.join(OUTPUTPATH,'litcovid_update_file.json'), 'w', encoding='utf-8') as f:
+        json.dump(json_correctionsA, f)
+    priorpreprintupdates = read_csv(os.path.join(OUTPUTPATH,'preprint_update_file.tsv'),delimiter="\t",header=0,index_col=0)    
+    correctionB = updatedf[['litcovid','preprint']].copy()
+    correctionB.rename(columns={'litcovid':'correction.identifier','preprint':'_id'},inplace=True)
+    correctionB['@type']='outbreak:Correction'
+    correctionB['correction.correctionType']='peer-reviewed version'
+    correctionB['baseurl']='https://pubmed.ncbi.nlm.nih.gov/'
+    correctionB['correction.url']=correctionB['baseurl'].str.cat(correctionB['correction.identifier'])
+    correctionB.drop('baseurl',axis=1,inplace=True)
+    correctionBupdate = pd.concat((priorpreprintupdates,correctionB),ignore_index=True)
+    correctionBupdate.drop_duplicates(keep='first')
+    correctionBupdate.to_csv(os.path.join(OUTPUTPATH,'preprint_update_file.tsv'),sep="\t",header=True)
+    json_correctionsB = convert_txt_dumps(correctionBupdate)
+    with open(os.path.join(OUTPUTPATH,'preprint_update_file.json'), 'w', encoding='utf-8') as f:
+        json.dump(json_correctionsB, f)
+    corrections_added = len(correctionBupdate)+len(correctionAupdate)
     return(corrections_added)
 
 

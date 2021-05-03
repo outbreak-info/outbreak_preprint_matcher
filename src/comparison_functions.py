@@ -5,6 +5,7 @@ from datetime import datetime,timedelta
 import pandas as pd
 from pandas import read_csv
 from src.cleaning_functions import *
+import pathlib
 
 ## load the metadata for comparison
 def load_new_meta(TEMPPATH):
