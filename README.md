@@ -11,6 +11,7 @@ This code was written in python 3.6 and uses the following libraries:
 * json
 * string
 * datetime
+* pathlib
 
 Additionally, you will need a few libraries from nltk which must be downloaded using the nltk downloader including:
 * stopwords
@@ -18,7 +19,9 @@ Additionally, you will need a few libraries from nltk which must be downloaded u
 
 To get these, run this once:
 `import nltk
+
 nltk download stopwords
+
 nltk download punkt`
 
 
@@ -49,6 +52,7 @@ Files may be named by type of meta compared (either 'text' or 'auth' (author)), 
 * 'results/to review/manual_check.txt' - a tab-delimited pandas dump for matches where a litcovid item matched with more than one preprint or vice versa
 * 'results/archives/clean_results.txt' - a tab-delimited pandas dump for matches which do not need further screening. This file is processed for creating the update dump
 * 'results/update dumps/update_file.txt' - a tab-delimited pandas dump for matches which do not need further screening and have been formatted with the appropriate fields for importing into outbreak.info resource metadata
+* As of May 2021, an additional split export has been included for ease of merging into the database
 * Note that some files may be compressed to meet github upload requirements. Uncompress in same directory for script run
 
 ### Similarity calculations
