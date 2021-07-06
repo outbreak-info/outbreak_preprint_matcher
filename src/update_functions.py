@@ -3,6 +3,7 @@ import requests
 import pickle
 import json
 from datetime import datetime,timedelta
+import time
 import pandas as pd
 from pandas import read_csv
 from src.cleaning_functions import *
@@ -40,6 +41,7 @@ def get_source_ids(source):
                 scroll_id = response2["_scroll_id"]
             except:
                 print("no new scroll id")
+            time.sleep(1)
         return(idlist)
     except:
         return(idlist)
@@ -150,6 +152,7 @@ def batch_fetch_meta(idlist):
             cleanresult.drop_duplicates(subset='_id',keep="first", inplace=True)
             authdf = pd.concat((authdf,cleanresult),ignore_index=True)
         i=i+1
+        time.sleep(1)
     return(textdf,authdf)
 
 

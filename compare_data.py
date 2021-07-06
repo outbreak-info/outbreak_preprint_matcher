@@ -43,10 +43,10 @@ if new_rxiv==True and new_litcovid==True:
     blank_temps(TEMPPATH)
     ## run old preprints against new litcovid entries:
     if len(clean_lit_text)>0:
-        for eachtopic in topicdf['topicCategory'].unique().tolist():
-            preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,old_rxiv_text,eachtopic)
-            if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-                run_comparison(preprint_topicdf,litcovid_topicdf,'text',thresholds,TEMPPATH)
+        eachtopic = None
+        preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,old_rxiv_text,eachtopic)
+        if len(preprint_topicdf)+len(litcovid_topicdf)>0:
+            run_comparison(preprint_topicdf,litcovid_topicdf,'text',thresholds,TEMPPATH)
         try:
             eachtopic = None
             preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,clean_rxiv_text,eachtopic)
@@ -55,10 +55,10 @@ if new_rxiv==True and new_litcovid==True:
         except:
             pass
     if len(clean_lit_auth)>0:
-        for eachtopic in topicdf['topicCategory'].unique().tolist():
-            preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_auth,old_rxiv_auth,eachtopic)
-            if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-                run_comparison(preprint_topicdf,litcovid_topicdf,'auth', thresholds,TEMPPATH)
+        eachtopic = None
+        preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_auth,old_rxiv_auth,eachtopic)
+        if len(preprint_topicdf)+len(litcovid_topicdf)>0:
+            run_comparison(preprint_topicdf,litcovid_topicdf,'auth', thresholds,TEMPPATH)
         try:
             eachtopic = None
             preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,clean_rxiv_text,eachtopic)
@@ -68,10 +68,10 @@ if new_rxiv==True and new_litcovid==True:
             pass
     ## run new preprints against new litcovid entries
     if len(clean_rxiv_text)>0:
-        for eachtopic in topicdf['topicCategory'].unique().tolist():
-            preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,clean_rxiv_text,eachtopic)
-            if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-                run_comparison(preprint_topicdf,litcovid_topicdf,'text',thresholds,TEMPPATH)
+        eachtopic = None
+        preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,clean_rxiv_text,eachtopic)
+        if len(preprint_topicdf)+len(litcovid_topicdf)>0:
+            run_comparison(preprint_topicdf,litcovid_topicdf,'text',thresholds,TEMPPATH)
         try:
             eachtopic = None
             preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,clean_rxiv_text,eachtopic)
@@ -80,10 +80,10 @@ if new_rxiv==True and new_litcovid==True:
         except:
             pass
     if len(clean_rxiv_auth)>0:
-        for eachtopic in topicdf['topicCategory'].unique().tolist():
-            preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_auth,clean_rxiv_auth,eachtopic)
-            if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-                run_comparison(preprint_topicdf,litcovid_topicdf,'auth', thresholds,TEMPPATH)
+        eachtopic = None
+        preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_auth,clean_rxiv_auth,eachtopic)
+        if len(preprint_topicdf)+len(litcovid_topicdf)>0:
+            run_comparison(preprint_topicdf,litcovid_topicdf,'auth', thresholds,TEMPPATH)
         try:
             eachtopic = None
             preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,clean_rxiv_text,eachtopic)
@@ -95,10 +95,10 @@ if new_rxiv==True and new_litcovid==True:
 elif new_rxiv==False and new_litcovid==True:
     ## run old preprints against new litcovid entries
     if len(clean_lit_text)>0:
-        for eachtopic in topicdf['topicCategory'].unique().tolist():
-            preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,old_rxiv_text,eachtopic)
-            if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-                run_comparison(preprint_topicdf,litcovid_topicdf,'text',thresholds,TEMPPATH)
+        eachtopic = None
+        preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,old_rxiv_text,eachtopic)
+        if len(preprint_topicdf)+len(litcovid_topicdf)>0:
+            run_comparison(preprint_topicdf,litcovid_topicdf,'text',thresholds,TEMPPATH)
         try:
             eachtopic = None
             preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,clean_rxiv_text,eachtopic)
@@ -107,10 +107,10 @@ elif new_rxiv==False and new_litcovid==True:
         except:
             pass
     if len(clean_lit_auth)>0:
-        for eachtopic in topicdf['topicCategory'].unique().tolist():
-            preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_auth,old_rxiv_auth,eachtopic)
-            if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-                run_comparison(preprint_topicdf,litcovid_topicdf,'auth', thresholds,TEMPPATH)
+        eachtopic = None
+        preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_auth,old_rxiv_auth,eachtopic)
+        if len(preprint_topicdf)+len(litcovid_topicdf)>0:
+            run_comparison(preprint_topicdf,litcovid_topicdf,'auth', thresholds,TEMPPATH)
         try:
             eachtopic = None
             preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,clean_rxiv_text,eachtopic)
