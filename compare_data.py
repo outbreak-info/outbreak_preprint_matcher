@@ -22,13 +22,15 @@ except:
 RESULTSPATH = os.path.join(scriptpath,'results/')
 ARCHIVEPATH = os.path.join(RESULTSPATH,'archives/')
 TEMPPATH = os.path.join(RESULTSPATH,'temp/')
+
+"""
 TOPICPATH = os.path.join(generalpath,'topic_classifier/results/') 
 TOPICFILE = read_csv(os.path.join(TOPICPATH,'topicCats.tsv'),delimiter='\t',header=0,index_col=0,
                      converters={"topicCategory": lambda x: x.strip("[]").replace("'","").split(", ")})
 TOPICFILE.fillna({i: [] for i in TOPICFILE.index})
 topicdf = TOPICFILE.explode('topicCategory').reset_index()
 topicdf.drop(columns=['index'],inplace=True)
-
+"""
 thresholds = {"auth":0.45,
               "text":0.2,
               "sum_min":0.75}
