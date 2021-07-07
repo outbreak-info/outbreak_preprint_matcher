@@ -43,81 +43,26 @@ if new_rxiv==True and new_litcovid==True:
     blank_temps(TEMPPATH)
     ## run old preprints against new litcovid entries:
     if len(clean_lit_text)>0:
-        eachtopic = None
-        preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,old_rxiv_text,eachtopic)
-        if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-            run_comparison(preprint_topicdf,litcovid_topicdf,'text',thresholds,TEMPPATH)
-        try:
-            eachtopic = None
-            preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,clean_rxiv_text,eachtopic)
-            if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-                run_comparison(preprint_topicdf,litcovid_topicdf,'text',thresholds,TEMPPATH)
-        except:
-            pass
+        run_comparison(clean_lit_text,old_rxiv_text,'text',thresholds,TEMPPATH)
     if len(clean_lit_auth)>0:
-        eachtopic = None
-        preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_auth,old_rxiv_auth,eachtopic)
-        if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-            run_comparison(preprint_topicdf,litcovid_topicdf,'auth', thresholds,TEMPPATH)
-        try:
-            eachtopic = None
-            preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,clean_rxiv_text,eachtopic)
-            if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-                run_comparison(preprint_topicdf,litcovid_topicdf,'text',thresholds,TEMPPATH)
-        except:
-            pass
+        run_comparison(old_rxiv_auth,clean_lit_auth,'auth', thresholds,TEMPPATH)
+
     ## run new preprints against new litcovid entries
     if len(clean_rxiv_text)>0:
-        eachtopic = None
-        preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,clean_rxiv_text,eachtopic)
-        if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-            run_comparison(preprint_topicdf,litcovid_topicdf,'text',thresholds,TEMPPATH)
-        try:
-            eachtopic = None
-            preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,clean_rxiv_text,eachtopic)
-            if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-                run_comparison(preprint_topicdf,litcovid_topicdf,'text',thresholds,TEMPPATH)
-        except:
-            pass
+        run_comparison(clean_rxiv_text,clean_lit_text,'text',thresholds,TEMPPATH)
+
     if len(clean_rxiv_auth)>0:
-        eachtopic = None
-        preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_auth,clean_rxiv_auth,eachtopic)
-        if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-            run_comparison(preprint_topicdf,litcovid_topicdf,'auth', thresholds,TEMPPATH)
-        try:
-            eachtopic = None
-            preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,clean_rxiv_text,eachtopic)
-            if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-                run_comparison(preprint_topicdf,litcovid_topicdf,'text',thresholds,TEMPPATH)
-        except:
-            pass
+        run_comparison(clean_rxiv_auth,clean_lit_auth,'auth', thresholds,TEMPPATH)
+
 
 elif new_rxiv==False and new_litcovid==True:
     ## run old preprints against new litcovid entries
     if len(clean_lit_text)>0:
-        eachtopic = None
-        preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,old_rxiv_text,eachtopic)
-        if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-            run_comparison(preprint_topicdf,litcovid_topicdf,'text',thresholds,TEMPPATH)
-        try:
-            eachtopic = None
-            preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,clean_rxiv_text,eachtopic)
-            if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-                run_comparison(preprint_topicdf,litcovid_topicdf,'text',thresholds,TEMPPATH)
-        except:
-            pass
+        run_comparison(old_rxiv_text,clean_lit_text,'text',thresholds,TEMPPATH)
+
     if len(clean_lit_auth)>0:
-        eachtopic = None
-        preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_auth,old_rxiv_auth,eachtopic)
-        if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-            run_comparison(preprint_topicdf,litcovid_topicdf,'auth', thresholds,TEMPPATH)
-        try:
-            eachtopic = None
-            preprint_topicdf,litcovid_topicdf = generate_comparison_dfs(topicdf,clean_lit_text,clean_rxiv_text,eachtopic)
-            if len(preprint_topicdf)+len(litcovid_topicdf)>0:
-                run_comparison(preprint_topicdf,litcovid_topicdf,'text',thresholds,TEMPPATH)
-        except:
-            pass
+        run_comparison(old_rxiv_auth,clean_lit_auth,'auth', thresholds,TEMPPATH)
+
 
 elif new_rxiv==True and new_litcovid==False:
     print("no point in comparing new preprints to old litcovid entries")
