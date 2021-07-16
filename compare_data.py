@@ -39,7 +39,7 @@ clean_rxiv_text,clean_rxiv_auth,clean_lit_text,clean_lit_auth = load_new_meta(TE
 old_rxiv_text,old_rxiv_auth,old_lit_text,old_lit_auth =  load_previous_runs(ARCHIVEPATH)
 
 new_rxiv = check_b4_compare(clean_rxiv_text,old_rxiv_text)
-new_litcovid = check_b4_compare(clean_rxiv_text,old_rxiv_text)
+new_litcovid = check_b4_compare(clean_lit_text,old_lit_text)
 
 if new_rxiv==True and new_litcovid==True:
     blank_temps(TEMPPATH)
