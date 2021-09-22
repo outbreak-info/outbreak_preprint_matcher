@@ -13,6 +13,9 @@ This code was written in python 3.6 and uses the following libraries:
 * datetime
 * pathlib
 
+Note that as of June 2020, PubMed piloted a program to incorporate preprints. While the preprints with pmids do not appear to have been included in LitCovid, they exist within PubMed and can be used for pulling known matches. Code for performing this task uses the following libraries:
+* biopython
+
 Additionally, you will need a few libraries from nltk which must be downloaded using the nltk downloader including:
 * stopwords
 * punkt
@@ -20,9 +23,9 @@ Additionally, you will need a few libraries from nltk which must be downloaded u
 To get these, run this once:
 `import nltk
 
-nltk download stopwords
+nltk.download(stopwords)
 
-nltk download punkt`
+nltk.download(punkt)`
 
 
 **Limitations**
@@ -59,6 +62,6 @@ Files may be named by type of meta compared (either 'text' or 'auth' (author)), 
 This script currently uses a basic bag of words comparison and calculated jaccard similarity index. 
 Based on a test run, from when litcovid had only 30k entries and there were only slightly less than 7K preprints, text similarities >0.2 and author similarities >0.45 make a reasonable cutoff. The author and text metafields were compared individually as this would allow for the identification and use of a more tailored threshold. 
 
-Although there were initial plans to check other comparison methods (TF-IDF with cosine similarity), these plans were dropped as this method seems sufficient for the given task and using more complicated methods may extend the runtime.
+Although there were initial plans to check other comparison methods (TF-IDF with cosine similarity), these plans were dropped cue to time constraints.
 
 

@@ -30,13 +30,21 @@ def update_precompute(clean_df_set,ARCHIVEPATH):
 
 ## Format the results for easier updating in biothings
 def convert_txt_dumps(txtdump):
+    colnames = list(txtdump.columns)
     txtdump.rename(columns={'correction.identifier':'identifier','correction.url':'url','correction.correctionType':'correctionType'}, inplace=True)
     dictlist = []
     for i in range(len(txtdump)):
-        tmpdict={'_id':txtdump.iloc[i]['_id'],'correction':[{'@type':'Correction',
-                                                            'identifier':txtdump.iloc[i]['identifier'],
-                                                            'correctionType':txtdump.iloc[i]['correctionType'],
-                                                            'url':txtdump.iloc[i]['url']}]}
+        if 'correction.pmid' in colnames:
+            tmpdict={'_id':txtdump.iloc[i]['_id'],'correction':[{'@type':'Correction',
+                                                                'identifier':txtdump.iloc[i]['identifier'],
+                                                                'correctionType':txtdump.iloc[i]['correctionType'],
+                                                                'url':txtdump.iloc[i]['url'],
+                                                                'pmid':txtdump.iloc[i]['correction.pmid']}]}
+        else:
+             tmpdict={'_id':txtdump.iloc[i]['_id'],'correction':[{'@type':'Correction',
+                                                                'identifier':txtdump.iloc[i]['identifier'],
+                                                                'correctionType':txtdump.iloc[i]['correctionType'],
+                                                                'url':txtdump.iloc[i]['url']}]}           
         dictlist.append(tmpdict)
     return(dictlist)
 
@@ -45,18 +53,20 @@ def generate_updates(updatedf,OUTPUTPATH):
     priorupdates = read_csv(os.path.join(OUTPUTPATH,'update_file.tsv'),delimiter="\t",header=0,index_col=0)
     correctionA = updatedf[['litcovid','preprint']].copy()
     correctionA.rename(columns={'litcovid':'_id','preprint':'correction.identifier'},inplace=True)
-    correctionA['@type']='outbreak:Correction'
+    correctionA['correction.@type']='outbreak:Correction'
     correctionA['correction.correctionType']='preprint'
     correctionA['baseurl']='https://doi.org/10.1101/'
     correctionA['correction.url']=correctionA['baseurl'].str.cat(correctionA['correction.identifier'])
     correctionA.drop('baseurl',axis=1,inplace=True)
     correctionB = updatedf[['litcovid','preprint']].copy()
     correctionB.rename(columns={'litcovid':'correction.identifier','preprint':'_id'},inplace=True)
-    correctionB['@type']='outbreak:Correction'
+    correctionB['correction.@type']='outbreak:Correction'
     correctionB['correction.correctionType']='peer-reviewed version'
     correctionB['baseurl']='https://pubmed.ncbi.nlm.nih.gov/'
-    correctionB['correction.url']=correctionB['baseurl'].str.cat(correctionB['correction.identifier'].astype(str).str.replace('pmid',''))
+    correctionB['correction.pmid'] = correctionB['correction.identifier'].astype(str).str.replace('pmid','')
+    correctionB['correction.url']=correctionB['baseurl'].str.cat(correctionB['correction.pmid'])
     correctionB.drop('baseurl',axis=1,inplace=True)
+    correctionB.drop('correction.pmid',axis=1,inplace=True)
     correctionupdate = pd.concat((priorupdates,correctionA,correctionB),ignore_index=True)
     correctionupdate.drop_duplicates(keep='first')
     correctionupdate.to_csv(os.path.join(OUTPUTPATH,'update_file.tsv'),sep="\t",header=True)
@@ -72,7 +82,7 @@ def generate_split_updates(updatedf,OUTPUTPATH):
     priorlitcovidupdates = read_csv(os.path.join(OUTPUTPATH,'litcovid_update_file.tsv'),delimiter="\t",header=0,index_col=0)
     correctionA = updatedf[['litcovid','preprint']].copy()
     correctionA.rename(columns={'litcovid':'_id','preprint':'correction.identifier'},inplace=True)
-    correctionA['@type']='outbreak:Correction'
+    correctionA['correction.@type']='outbreak:Correction'
     correctionA['correction.correctionType']='preprint'
     correctionA['baseurl']='https://doi.org/10.1101/'
     correctionA['correction.url']=correctionA['baseurl'].str.cat(correctionA['correction.identifier'])
@@ -83,13 +93,14 @@ def generate_split_updates(updatedf,OUTPUTPATH):
     json_correctionsA = convert_txt_dumps(correctionAupdate)
     with open(os.path.join(OUTPUTPATH,'litcovid_update_file.json'), 'w', encoding='utf-8') as f:
         json.dump(json_correctionsA, f)
-    priorpreprintupdates = read_csv(os.path.join(OUTPUTPATH,'preprint_update_file.tsv'),delimiter="\t",header=0,index_col=0)    
+    priorpreprintupdates = read_csv(os.path.join(OUTPUTPATH,'preprint_update_file.tsv'),delimiter="\t",header=0,index_col=0,,converters = {'correction.pmid': str})
     correctionB = updatedf[['litcovid','preprint']].copy()
     correctionB.rename(columns={'litcovid':'correction.identifier','preprint':'_id'},inplace=True)
-    correctionB['@type']='outbreak:Correction'
+    correctionB['correction.@type']='outbreak:Correction'
     correctionB['correction.correctionType']='peer-reviewed version'
     correctionB['baseurl']='https://pubmed.ncbi.nlm.nih.gov/'
-    correctionB['correction.url']=correctionB['baseurl'].str.cat(correctionB['correction.identifier'].astype(str).str.replace('pmid',''))
+    correctionB['correction.pmid'] = correctionB['correction.identifier'].astype(str).str.replace('pmid','')
+    correctionB['correction.url']=correctionB['baseurl'].str.cat(correctionB['correction.pmid'])
     correctionB.drop('baseurl',axis=1,inplace=True)
     correctionBupdate = pd.concat((priorpreprintupdates,correctionB),ignore_index=True)
     correctionBupdate.drop_duplicates(keep='first')

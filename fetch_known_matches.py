@@ -11,6 +11,7 @@ import re
 from src.archive_functions import generate_updates
 from src.archive_functions import generate_split_updates
 from src.pubmed_mapped import *
+from src.config import email_address
 
 scriptpath = pathlib.Path(__file__).parent.absolute()
 RESULTSPATH = os.path.join(scriptpath,'results/')
