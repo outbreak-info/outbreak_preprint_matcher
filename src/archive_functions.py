@@ -55,7 +55,7 @@ def generate_updates(updatedf,OUTPUTPATH):
     correctionB['@type']='outbreak:Correction'
     correctionB['correction.correctionType']='peer-reviewed version'
     correctionB['baseurl']='https://pubmed.ncbi.nlm.nih.gov/'
-    correctionB['correction.url']=correctionB['baseurl'].str.cat(correctionB['correction.identifier'])
+    correctionB['correction.url']=correctionB['baseurl'].str.cat(correctionB['correction.identifier'].astype(str).str.replace('pmid',''))
     correctionB.drop('baseurl',axis=1,inplace=True)
     correctionupdate = pd.concat((priorupdates,correctionA,correctionB),ignore_index=True)
     correctionupdate.drop_duplicates(keep='first')
@@ -89,7 +89,7 @@ def generate_split_updates(updatedf,OUTPUTPATH):
     correctionB['@type']='outbreak:Correction'
     correctionB['correction.correctionType']='peer-reviewed version'
     correctionB['baseurl']='https://pubmed.ncbi.nlm.nih.gov/'
-    correctionB['correction.url']=correctionB['baseurl'].str.cat(correctionB['correction.identifier'])
+    correctionB['correction.url']=correctionB['baseurl'].str.cat(correctionB['correction.identifier'].astype(str).str.replace('pmid',''))
     correctionB.drop('baseurl',axis=1,inplace=True)
     correctionBupdate = pd.concat((priorpreprintupdates,correctionB),ignore_index=True)
     correctionBupdate.drop_duplicates(keep='first')
