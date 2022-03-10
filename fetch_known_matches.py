@@ -1,4 +1,5 @@
 import os
+import pathlib
 import requests
 import pandas as pd
 from pandas import read_csv
@@ -18,4 +19,4 @@ RESULTSPATH = os.path.join(scriptpath,'results/')
 ARCHIVEPATH = os.path.join(RESULTSPATH,'archives/')
 OUTPUTPATH = os.path.join(RESULTSPATH,'update dumps/')
 
-pull_updates_from_pubmed(email_address,ARCHIVEPATH,OUTPUTPATH
+pull_updates_from_pubmed(email_address,ARCHIVEPATH,OUTPUTPATH)

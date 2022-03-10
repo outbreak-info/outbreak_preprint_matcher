@@ -93,7 +93,7 @@ def generate_split_updates(updatedf,OUTPUTPATH):
     json_correctionsA = convert_txt_dumps(correctionAupdate)
     with open(os.path.join(OUTPUTPATH,'litcovid_update_file.json'), 'w', encoding='utf-8') as f:
         json.dump(json_correctionsA, f)
-    priorpreprintupdates = read_csv(os.path.join(OUTPUTPATH,'preprint_update_file.tsv'),delimiter="\t",header=0,index_col=0,,converters = {'correction.pmid': str})
+    priorpreprintupdates = read_csv(os.path.join(OUTPUTPATH,'preprint_update_file.tsv'),delimiter="\t",header=0,index_col=0,converters = {'correction.pmid': str})
     correctionB = updatedf[['litcovid','preprint']].copy()
     correctionB.rename(columns={'litcovid':'correction.identifier','preprint':'_id'},inplace=True)
     correctionB['correction.@type']='outbreak:Correction'
