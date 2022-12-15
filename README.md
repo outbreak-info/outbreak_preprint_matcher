@@ -1,4 +1,5 @@
 # Outbreak resource litcovid and preprint matcher
+[![DOI](https://zenodo.org/badge/285161185.svg)](https://zenodo.org/badge/latestdoi/285161185)
 
 This code pings the outbreak.info api to pull an updated list of ids, compares the ids with files containing previously run ids and identifies the newly updated ids. For the newly updated ids, it pings the api to pull the relevant metadata so that a similarity test can be run for the new ids.
 
